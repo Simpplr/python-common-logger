@@ -1,2 +1,2 @@
-from logger import *
-from django.middleware import *
+from src.logger import *
+from src.django.middleware import *
