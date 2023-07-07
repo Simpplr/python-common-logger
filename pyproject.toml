@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "python-common-logger"
+name = "python_common_logger"
 version = "0.0.1"
 description = "Simpplr common logger for Python packages"
 readme = "README.md"
