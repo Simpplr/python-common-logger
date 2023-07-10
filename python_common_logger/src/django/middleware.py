@@ -12,16 +12,16 @@ class ContextMiddleware():
     def __call__(self, request):
         execution_context = {}
         
-        if RequestHeaderKeys.CORRELATION_ID.value in request.headers:
-            execution_context[ExecutionContextType.CORRELATION_ID.value] = request.headers[RequestHeaderKeys.CORRELATION_ID.value]
+        if RequestHeaderKeys.CORRELATION_ID.value in request.META:
+            execution_context[ExecutionContextType.CORRELATION_ID.value] = request.META[RequestHeaderKeys.CORRELATION_ID.value]
         else:
             execution_context[ExecutionContextType.CORRELATION_ID.value] = uuid4()
         
-        if RequestHeaderKeys.ACCOUNT_ID.value in request.headers:
-            execution_context[ExecutionContextType.TENANT_ID.value] = request.headers[RequestHeaderKeys.ACCOUNT_ID.value]
+        if RequestHeaderKeys.ACCOUNT_ID.value in request.META:
+            execution_context[ExecutionContextType.TENANT_ID.value] = request.META[RequestHeaderKeys.ACCOUNT_ID.value]
         
-        if RequestHeaderKeys.USER_ID.value in request.headers:
-            execution_context[ExecutionContextType.USER_ID.value] = request.headers[RequestHeaderKeys.USER_ID.value]
+        if RequestHeaderKeys.USER_ID.value in request.META:
+            execution_context[ExecutionContextType.USER_ID.value] = request.META[RequestHeaderKeys.USER_ID.value]
 
         update_execution_context(ExecutionContext(execution_context))
 
