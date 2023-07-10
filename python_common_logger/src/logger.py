@@ -1,28 +1,30 @@
 import logging 
 import json
 import sys
-from threading import local
 
-_locals = local()
+from .context.context_handler import get_thread_execution_context
+from .context.execution_context import ExecutionContext, ExecutionContextType
+
+from  .constants.logger import LoggerKeys
+from  .constants.context import ExecutionContextType
 
 class ContextFilter(logging.Filter):
     def filter(self, record):
-        if not hasattr(record, 'correlation_id'):
-                record.correlation_id = ""
-        if hasattr(_locals, 'correlation_id'):
-            record.correlation_id = _locals.correlation_id
-        
-        if not hasattr(record, 'tenant_id'):
-                record.tenant_id = ""
-        if hasattr(_locals, 'tenant_id'):
-            record.tenant_id = _locals.tenant_id
-        
-        if not hasattr(record, 'user_id'):
-                record.user_id = ""
-        if hasattr(_locals, 'user_id'):
-            record.user_id = _locals.user_id
+        execution_context: ExecutionContext = get_thread_execution_context()
+
+        context_values: dict = execution_context.get_context()
+        print(f'Log Filter context: {context_values}')
+
+        for key in ExecutionContext.ALLOWED_KEYS:
+            print(key)
+            if key in context_values:
+                setattr(record, key, context_values[key])
+                print(context_values[key])
+            else:
+                setattr(record, key, '')
         return True
 
+# TODO: Accept config to accept type of values to be logged
 def initialise(service_name, level=logging.DEBUG):
     logger = logging.getLogger(service_name)
     
@@ -30,19 +32,20 @@ def initialise(service_name, level=logging.DEBUG):
     c_handler = logging.StreamHandler(sys.stdout)
 
     # Populate Context Filter in Record
-    # logger.addFilter(ContextFilter())
-    
-    # Create formatters and add it to handlers
-    c_format = logging.Formatter(json.dumps({
+    log_format = {
         "source": "%(name)s",
-        "cid": "%(correlation_id)s",
-        "tid": "%(tenant_id)s",
-        "uid": "%(user_id)s",
         "time": "%(asctime)s",
         "log": {
             "message": "%(message)s"
         } 
-    }), datefmt='%Y-%m-%dT%H:%M:%S%z')
+    }
+
+    log_format[LoggerKeys.CORRELATION_ID.value] = f"%({ExecutionContextType.CORRELATION_ID.value})s"
+    log_format[LoggerKeys.TENANT_ID.value] = f"%({ExecutionContextType.TENANT_ID.value})s"
+    log_format[LoggerKeys.USER_ID.value] = f"%({ExecutionContextType.USER_ID.value})s"
+    
+    # Create formatters and add it to handlers
+    c_format = logging.Formatter(json.dumps(log_format), datefmt='%Y-%m-%dT%H:%M:%S%z')
 
     c_handler.setFormatter(c_format)
     c_handler.addFilter(ContextFilter())
