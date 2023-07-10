@@ -5,27 +5,23 @@ import sys
 from .context.context_handler import get_thread_execution_context
 from .context.execution_context import ExecutionContext, ExecutionContextType
 
-from  .constants.logger import LoggerKeys
-from  .constants.context import ExecutionContextType
+from .constants.logger import LoggerKeys, ContextConfig
+from .constants.context import ExecutionContextType
 
 class ContextFilter(logging.Filter):
     def filter(self, record):
         execution_context: ExecutionContext = get_thread_execution_context()
 
         context_values: dict = execution_context.get_context()
-        print(f'Log Filter context: {context_values}')
 
         for key in ExecutionContext.ALLOWED_KEYS:
-            print(key)
             if key in context_values:
                 setattr(record, key, context_values[key])
-                print(context_values[key])
             else:
                 setattr(record, key, '')
         return True
 
-# TODO: Accept config to accept type of values to be logged
-def initialise(service_name, level=logging.DEBUG):
+def initialise_console_logger(service_name, level=logging.WARNING, context_config=None):
     logger = logging.getLogger(service_name)
     
     # Create handlers
@@ -37,12 +33,21 @@ def initialise(service_name, level=logging.DEBUG):
         "time": "%(asctime)s",
         "log": {
             "message": "%(message)s"
-        } 
+        },
+        "logLevel": "%(levelname)s"
     }
 
-    log_format[LoggerKeys.CORRELATION_ID.value] = f"%({ExecutionContextType.CORRELATION_ID.value})s"
-    log_format[LoggerKeys.TENANT_ID.value] = f"%({ExecutionContextType.TENANT_ID.value})s"
-    log_format[LoggerKeys.USER_ID.value] = f"%({ExecutionContextType.USER_ID.value})s"
+    if not context_config:
+        context_config = {}
+
+    if not context_config.get(ContextConfig.DISABLE_CID.value):
+        log_format[LoggerKeys.CORRELATION_ID.value] = f"%({ExecutionContextType.CORRELATION_ID.value})s"
+    
+    if not context_config.get(ContextConfig.DISABLE_TID.value):
+        log_format[LoggerKeys.TENANT_ID.value] = f"%({ExecutionContextType.TENANT_ID.value})s"
+    
+    if not context_config.get(ContextConfig.DISABLE_UID.value):
+        log_format[LoggerKeys.USER_ID.value] = f"%({ExecutionContextType.USER_ID.value})s"
     
     # Create formatters and add it to handlers
     c_format = logging.Formatter(json.dumps(log_format), datefmt='%Y-%m-%dT%H:%M:%S%z')
