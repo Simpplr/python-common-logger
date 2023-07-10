@@ -1,5 +1,5 @@
 from uuid import uuid4
-from src.logger import _locals
+from python_common_logger.src.logger import _locals
 
 class ContextMiddleware():
     def __init__(self, get_response):
