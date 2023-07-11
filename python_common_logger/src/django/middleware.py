@@ -6,6 +6,10 @@ from ..constants.request import RequestHeaderKeys
 from ..constants.context import ExecutionContextType
 
 class ContextMiddleware():
+    """
+    Django Context Middle. Extracts the headers from the request and populates the execution context
+    in thread local data.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
