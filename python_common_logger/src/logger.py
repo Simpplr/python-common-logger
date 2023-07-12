@@ -40,6 +40,10 @@ def initialise_console_logger(logger_name, service_name, level=logging.WARNING, 
         Logger: Initialised logger
     """
     logger = logging.getLogger(logger_name)
+
+    # Skip if already initialised. Helps preventing re-initialisation as Lambda instances share the logger instance.
+    if hasattr(logger, 'initialized'):
+        return logger
     
     # Create handlers
     log_handler = logging.StreamHandler(sys.stdout)
@@ -75,5 +79,8 @@ def initialise_console_logger(logger_name, service_name, level=logging.WARNING, 
     logger.addHandler(log_handler)
 
     logger.setLevel(level)
+
+    logger.propagate = False
+    setattr(logger, 'initialized', True)
     
     return logger
