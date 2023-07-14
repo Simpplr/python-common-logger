@@ -1,14 +1,16 @@
 import logging 
 import json
-import sys
+
+from logging import Handler, StreamHandler, Formatter, Filter
 
 from .context.context_handler import get_thread_execution_context
 from .context.execution_context import ExecutionContext, ExecutionContextType
 
 from .constants.logger import LoggerKeys, LoggerContextConfigKeys
 from .constants.context import ExecutionContextType
+from .utils.logger import create_json_formatter, create_stream_handler
 
-class ContextFilter(logging.Filter):
+class ContextFilter(Filter):
     """
     Log filter to extract the execution context from thread locals and populate it in the log record
     """
@@ -27,6 +29,7 @@ class ContextFilter(logging.Filter):
 
 def initialise_console_logger(logger_name, service_name, level=logging.WARNING, context_config=None):
     """
+    @deprecated - use initialise_logger instead
     Initialises the logger with the handler, formatter and filter to log context data along with message
     in JSON format on the console.
 
@@ -39,48 +42,44 @@ def initialise_console_logger(logger_name, service_name, level=logging.WARNING, 
     Returns:
         Logger: Initialised logger
     """
+    return initialise_logger(logger_name, service_name, level, context_config)
+
+
+def initialise_logger(logger_name, service_name, level=logging.INFO, context_config=None, use_default_json_handler=True, other_handlers: [Handler]=[], propagate_to_parent=False):
+    """
+    Initialises the logger.
+
+    Args:
+        logger_name (string): Name of the logger to be initialised
+        service_name (string): Service name that appears as the source in the logs
+        level (int, optional): Log level. Defaults to logging.INFO.
+        context_config (dict, optional): Context config to configure formatter for logging parameters. See LoggerContextConfigKeys for list of allowed params. Useless if use_default_json_handler is False. Defaults to None. 
+        use_default_json_handler (boolean, optional): Use the default JSON logger. Defaults to True.
+        other_handlers ([Handler], optional): Handlers to be attached to the logger. Defaults to [].
+        propagate_to_parent (boolean, optional): Should the log be propagated to parent. Defaults to False.
+
+    Returns:
+        Logger: Initialised logger
+    """
     logger = logging.getLogger(logger_name)
 
     # Skip if already initialised. Helps preventing re-initialisation as Lambda instances share the logger instance.
     if hasattr(logger, 'initialized'):
         return logger
-    
-    # Create handlers
-    log_handler = logging.StreamHandler(sys.stdout)
 
-    log_format = {
-        "source": f"{service_name}",
-        "time": "%(asctime)s",
-        "log": {
-            "message": "%(message)s"
-        },
-        "logLevel": "%(levelname)s"
-    }
+    if use_default_json_handler:
+        json_formatter: Formatter = create_json_formatter(service_name, context_config)
 
-    if not context_config:
-        context_config = {}
+        json_handler: Handler = create_stream_handler(json_formatter, ContextFilter())
 
-    if not context_config.get(LoggerContextConfigKeys.DISABLE_CID.value):
-        log_format[LoggerKeys.CORRELATION_ID.value] = f"%({ExecutionContextType.CORRELATION_ID.value})s"
+        logger.addHandler(json_handler)
     
-    if not context_config.get(LoggerContextConfigKeys.DISABLE_TID.value):
-        log_format[LoggerKeys.TENANT_ID.value] = f"%({ExecutionContextType.TENANT_ID.value})s"
-    
-    if not context_config.get(LoggerContextConfigKeys.DISABLE_UID.value):
-        log_format[LoggerKeys.USER_ID.value] = f"%({ExecutionContextType.USER_ID.value})s"
-    
-    # Create formatters and add it to handlers
-    log_formatter = logging.Formatter(json.dumps(log_format), datefmt='%Y-%m-%dT%H:%M:%S%z')
-    log_handler.setFormatter(log_formatter)
-    
-    # Populate Context Filter in Record
-    log_handler.addFilter(ContextFilter())
-
-    logger.addHandler(log_handler)
+    for handler in other_handlers:
+        logger.addHandler(handler)
 
     logger.setLevel(level)
 
-    logger.propagate = False
+    logger.propagate = propagate_to_parent
     setattr(logger, 'initialized', True)
     
     return logger
