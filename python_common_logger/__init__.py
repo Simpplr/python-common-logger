@@ -15,9 +15,14 @@ Functions:
     Logger.initialise_console_logger(logger_name, service_name, level=logging.WARNING, context_config=None)
     ContextHandler.get_thread_execution_context(key='execution_context')
     ContextHandler.update_execution_context(execution_context, key='execution_context', reset=False)
+    LoggerUtils.create_stream_handler
+    LoggerUtils.create_json_formatter
+    LoggerUtils.create_simple_handler
+    LoggerUtils.create_simple_formatter
 """
 
 from .src import logger as Logger
+from .src.utils import logger as LoggerUtils
 from .src.context import context_handler as ContextHandler
 from .src.django import middleware as DjangoMiddleware
 
