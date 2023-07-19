@@ -41,10 +41,13 @@ def create_json_formatter(service_name: str, context_config:dict=None, date_form
         Formatter: Log formatter
     """
     log_format = {
-        "source": f"{service_name}",
+        "src": f"{service_name}",
         "time": "%(asctime)s",
         "log": {
-            "message": "[%(filename)s:%(funcName)s:%(lineno)s] %(message)s"
+            "message": "%(message)s",
+            "filename": "%(filename)s",
+            "funcName": "%(funcName)s",
+            "lineno": "%(lineno)s"
         },
         "logLevel": "%(levelname)s"
     }
