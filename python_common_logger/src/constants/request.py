@@ -13,6 +13,6 @@ class RequestHeaderKeys(Enum):
     CORRELATION_ID : str
         Correlation Id
     """
-    ACCOUNT_ID = 'x-smtip-tid',
-    USER_ID = 'x-smtip-uid',
-    CORRELATION_ID = 'x-smtip-cid',
+    ACCOUNT_ID = 'x-smtip-tid'
+    USER_ID = 'x-smtip-uid'
+    CORRELATION_ID = 'x-smtip-cid'
