@@ -15,20 +15,31 @@ class ContextMiddleware():
 
     def __call__(self, request):
         execution_context = {}
-        
-        if RequestHeaderKeys.CORRELATION_ID.value in request.META:
-            execution_context[ExecutionContextType.CORRELATION_ID.value] = request.META[RequestHeaderKeys.CORRELATION_ID.value]
+
+        cid_django_header = convert_to_django_header(RequestHeaderKeys.CORRELATION_ID.value)
+        tid_django_header = convert_to_django_header(RequestHeaderKeys.ACCOUNT_ID.value)
+        uid_django_header = convert_to_django_header(RequestHeaderKeys.USER_ID.value)
+
+        if cid_django_header in request.META:
+            execution_context[ExecutionContextType.CORRELATION_ID.value] = request.META[cid_django_header]
         else:
             execution_context[ExecutionContextType.CORRELATION_ID.value] = uuid4()
         
-        if RequestHeaderKeys.ACCOUNT_ID.value in request.META:
-            execution_context[ExecutionContextType.TENANT_ID.value] = request.META[RequestHeaderKeys.ACCOUNT_ID.value]
+        if tid_django_header in request.META:
+            execution_context[ExecutionContextType.TENANT_ID.value] = request.META[tid_django_header]
         
-        if RequestHeaderKeys.USER_ID.value in request.META:
-            execution_context[ExecutionContextType.USER_ID.value] = request.META[RequestHeaderKeys.USER_ID.value]
+        if uid_django_header in request.META:
+            execution_context[ExecutionContextType.USER_ID.value] = request.META[uid_django_header]
 
         update_execution_context(ExecutionContext(execution_context))
 
         response = self.get_response(request)
 
         return response
+
+"""
+Convert header keys as Django converts the received headers.
+See: https://docs.djangoproject.com/en/3.0/ref/request-response/#django.http.HttpRequest.META
+"""
+def convert_to_django_header(header_key: str) -> str:
+    return f'HTTP_{header_key.replace("-", "_").upper()}'
