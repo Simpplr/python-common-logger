@@ -1,5 +1,5 @@
 from uuid import uuid4
-from ..context.context_handler import update_execution_context, execution_context_var
+from ..context.context_handler import update_execution_context
 from ..context.execution_context import ExecutionContext
 from starlette.middleware.base import BaseHTTPMiddleware
 
