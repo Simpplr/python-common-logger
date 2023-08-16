@@ -1,28 +1,24 @@
+import contextvars
 from .execution_context import ExecutionContext
 
-from threading import local
+# Define a context variable for execution context
+execution_context_var = contextvars.ContextVar('execution_context', default=ExecutionContext({}))
 
-_locals = local()
-
-def get_thread_execution_context(key='execution_context') -> ExecutionContext:
+def get_thread_execution_context() -> ExecutionContext:
     """
-    Fetches the execution context from the thread local. If absent, initialises and returns an empty one.
-
-    Args:
-        key (str, optional): key. Defaults to 'execution_context'.
+    Fetches the execution context from the execution_context_var. If absent, initializes and returns an empty one.
     
     Returns:
-        ExecutionContext: Thread local execution context.
+        ExecutionContext: contextvars execution context.
     """
-    return getattr(_locals, key, ExecutionContext({}))
+    return execution_context_var.get()
 
-def update_execution_context(execution_context: ExecutionContext, key='execution_context', reset=False) -> ExecutionContext:
+def update_execution_context(execution_context: ExecutionContext, reset=False) -> ExecutionContext:
     """
     Updates the execution context.
 
     Args:
         execution_context (ExecutionContext): Execution context to be updated.
-        key (str, optional): key. Defaults to 'execution_context'.
         reset (bool, optional): Reset the entire context. Defaults to False.
 
     Returns:
@@ -32,6 +28,7 @@ def update_execution_context(execution_context: ExecutionContext, key='execution
     
     current_execution_context.update(execution_context.get_context(), reset)
 
-    setattr(_locals, key, current_execution_context)
+    # Update the context variable with the updated execution context
+    execution_context_var.set(current_execution_context)
 
     return current_execution_context
