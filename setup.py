@@ -4,6 +4,9 @@ setup(
   name = 'python_common_logger',
   packages = find_packages(),
   include_package_data = True,
+  install_requires=[
+    'starlette'
+  ],
   version = '1.0',
   license='None',
   description = 'Common Python Logger for Simpplr packages',
