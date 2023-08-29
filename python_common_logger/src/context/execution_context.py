@@ -62,7 +62,7 @@ class ExecutionContext:
         Returns:
             any: Execution Context
         """
-        return copy.deepcopy(self._context[key])
+        return copy.deepcopy(self._context.get(key))
 
     def get_context(self) -> dict:
         """
