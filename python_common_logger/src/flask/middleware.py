@@ -1,4 +1,5 @@
 from uuid import uuid4
+from werkzeug import Request
 from ..context.context_handler import update_execution_context
 from ..context.execution_context import ExecutionContext
 
@@ -11,14 +12,15 @@ class FlaskContextMiddleware():
     Flask Context Middle. Extracts the headers from the request and populates the execution context
     in contextvars.
     """
-    def __init__(self, request):
-        self.request = request
+    def __init__(self, app):
+        self.app = app
 
-    def __call__(self):
+    def __call__(self, environ, start_response):
         # Extract required headers from the incoming request
-        correlation_id = self.request.headers.get(RequestHeaderKeys.CORRELATION_ID.value)
-        account_id = self.request.headers.get(RequestHeaderKeys.ACCOUNT_ID.value)
-        user_id = self.request.headers.get(RequestHeaderKeys.USER_ID.value)
+        request = Request(environ)
+        correlation_id = request.headers.get(RequestHeaderKeys.CORRELATION_ID.value)
+        account_id = request.headers.get(RequestHeaderKeys.ACCOUNT_ID.value)
+        user_id = request.headers.get(RequestHeaderKeys.USER_ID.value)
 
         # Construct execution_context dictionary with the extracted headers
         execution_context = {}
@@ -35,3 +37,5 @@ class FlaskContextMiddleware():
 
         # Pass the execution context to update_execution_context
         update_execution_context(ExecutionContext(execution_context))
+
+        return self.app(environ, start_response)
