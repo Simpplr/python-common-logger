@@ -7,6 +7,7 @@ Classes:
     Logger.ContextFilter
     DjangoMiddleware.ContextMiddleware
     FastapiMiddleware.FastapiContextMiddleware
+    FlaskMiddleware.FlaskContextMiddleware
     ContextConstants.ExecutionContextType
     LoggingConstants.LoggerContextConfigKeys
     LoggingConstants.LoggerKeys
@@ -27,6 +28,7 @@ from .src.utils import logger as LoggerUtils
 from .src.context import context_handler as ContextHandler
 from .src.django import middleware as DjangoMiddleware
 from .src.fastapi import middleware as FastapiMiddleware
+from .src.flask import middleware as FlaskMiddleware
 
 from .src.constants import context as ContextConstants
 from .src.constants import logger as LoggingConstants
