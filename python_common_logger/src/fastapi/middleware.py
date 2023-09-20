@@ -23,7 +23,7 @@ class FastapiContextMiddleware(BaseHTTPMiddleware):
         if correlation_id:
             execution_context[ExecutionContextType.CORRELATION_ID.value] = correlation_id
         else:
-            execution_context[ExecutionContextType.CORRELATION_ID.value] = uuid4()
+            execution_context[ExecutionContextType.CORRELATION_ID.value] = str(uuid4())
 
         if account_id:
             execution_context[ExecutionContextType.TENANT_ID.value] = account_id
