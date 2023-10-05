@@ -1,4 +1,6 @@
 import contextvars
+import copy
+
 from .execution_context import ExecutionContext
 
 # Define a context variable for execution context
@@ -11,7 +13,7 @@ def get_thread_execution_context() -> ExecutionContext:
     Returns:
         ExecutionContext: contextvars execution context.
     """
-    return execution_context_var.get()
+    return copy.deepcopy(execution_context_var.get())
 
 def update_execution_context(execution_context: ExecutionContext, reset=False) -> ExecutionContext:
     """
